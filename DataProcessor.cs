@@ -1,6 +1,4 @@
-using System;
-using System.Threading.Tasks;
-using Azure.Messaging.ServiceBus;
+using System.Text.Json;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 
@@ -17,16 +15,10 @@ namespace LearningServiceBusTriggerApp
 
         [Function(nameof(DataProcessor))]
         public async Task Run(
-            [ServiceBusTrigger("sample-queue", Connection = "ServiceBusConnectionString")]
-            ServiceBusReceivedMessage message,
-            ServiceBusMessageActions messageActions)
+            [ServiceBusTrigger("sample-queue", Connection = "ServiceBusConnectionString")] string queueItem, int deliveryCount, string sessionId)
         {
-            _logger.LogInformation("Message ID: {id}", message.MessageId);
-            _logger.LogInformation("Message Body: {body}", message.Body);
-            _logger.LogInformation("Message Content-Type: {contentType}", message.ContentType);
-
-            // Complete the message
-            await messageActions.CompleteMessageAsync(message);
+            var item = JsonSerializer.Deserialize<dynamic>(queueItem);
+            _logger.LogInformation("Message processed");
         }
     }
 }
