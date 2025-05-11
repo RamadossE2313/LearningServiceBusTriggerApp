@@ -6,7 +6,7 @@ on:
       - main   # Trigger on push to the main branch
   pull_request:
     branches:
-      - main   # Trigger on PR to the main branch
+      - main   
 
 jobs:
   build-and-deploy:
@@ -15,7 +15,7 @@ jobs:
     steps:
     # Step 1: Checkout the code from the repository
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     # Step 2: Setup .NET Core SDK
     - name: Setup .NET Core SDK
@@ -41,7 +41,7 @@ jobs:
 
     # Step 7: Upload artifact (optional step if you need it for debugging)
     - name: Upload artifact (optional)
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: publish-artifact
         path: ./publish.zip
