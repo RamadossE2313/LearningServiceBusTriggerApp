@@ -1,0 +1,61 @@
+name: Build and Deploy Azure Function App
+
+on:
+  push:
+    branches:
+      - main   # Trigger on push to the main branch
+  pull_request:
+    branches:
+      - main   
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Step 1: Checkout the code from the repository
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    # Step 2: Setup .NET Core SDK
+    - name: Setup .NET Core SDK
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '8.x'   # Use .NET 8 SDK (or specify your version)
+
+    # Step 3: Restore dependencies
+    - name: Restore dependencies
+      run: dotnet restore
+
+    # Step 4: Build the project
+    - name: Build the project
+      run: dotnet build --configuration Release
+
+    # Step 5: Publish the project
+    - name: Publish the project
+      run: dotnet publish --configuration Release --output ./publish
+
+    # Step 6: Zip the published files (for deployment)
+    - name: Create deployment package
+      run: zip -r ./publish.zip ./publish
+
+    # Step 7: Upload artifact (optional step if you need it for debugging)
+    - name: Upload artifact (optional)
+      uses: actions/upload-artifact@v4
+      with:
+        name: publish-artifact
+        path: ./publish.zip
+
+    # Step 8: Azure login (using GitHub secrets for security)
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+
+    # Step 9: Deploy the function app to Azure using az CLI
+    - name: Deploy to Azure Function App
+      run: |
+        az functionapp deployment source config-zip \
+          --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+          --name ${{ secrets.AZURE_FUNCTION_APP_NAME }} \
+          --src ./publish.zip
